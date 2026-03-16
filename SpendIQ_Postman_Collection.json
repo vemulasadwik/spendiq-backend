@@ -1,0 +1,331 @@
+{
+  "info": {
+    "name": "SpendIQ Pro API",
+    "description": "Complete API collection for SpendIQ Pro backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "token",   "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Arjun Sharma\",\n  \"email\": \"arjun@email.com\",\n  \"password\": \"arjun123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "var res = pm.response.json();",
+                "if (res.data && res.data.token) {",
+                "  pm.collectionVariables.set('token', res.data.token);",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"arjun@email.com\",\n  \"password\": \"arjun123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/auth/me"
+          }
+        },
+        {
+          "name": "Get All Users (member picker)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/auth/users"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Expenses",
+      "item": [
+        {
+          "name": "Get All Expenses",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/expenses"
+          }
+        },
+        {
+          "name": "Get Expenses - Filter by Type",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/expenses?type=expense",
+              "query": [{ "key": "type", "value": "expense" }]
+            }
+          }
+        },
+        {
+          "name": "Get Expenses - Filter by Category",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/expenses?category=Food",
+              "query": [{ "key": "category", "value": "Food" }]
+            }
+          }
+        },
+        {
+          "name": "Get Expenses - Date Range",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/expenses?from=2026-03-01&to=2026-03-31",
+              "query": [
+                { "key": "from", "value": "2026-03-01" },
+                { "key": "to",   "value": "2026-03-31" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Expenses - Search",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/expenses?search=Netflix",
+              "query": [{ "key": "search", "value": "Netflix" }]
+            }
+          }
+        },
+        {
+          "name": "Get Recurring Expenses",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/expenses/recurring"
+          }
+        },
+        {
+          "name": "Get Expense by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/expenses/1"
+          }
+        },
+        {
+          "name": "Create Expense",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/expenses",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Dinner Out\",\n  \"amount\": 1200.00,\n  \"date\": \"2026-03-08\",\n  \"category\": \"Food\",\n  \"type\": \"expense\",\n  \"recurring\": false\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Expense",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/expenses/1",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Dinner Out (Updated)\",\n  \"amount\": 1400.00,\n  \"date\": \"2026-03-08\",\n  \"category\": \"Food\",\n  \"type\": \"expense\",\n  \"recurring\": false\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Expense",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/expenses/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Group Splits",
+      "item": [
+        {
+          "name": "Get My Splits",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/splits"
+          }
+        },
+        {
+          "name": "Get Split by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/splits/1"
+          }
+        },
+        {
+          "name": "Create Split",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/splits",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Pizza Night\",\n  \"totalAmount\": 2400.00,\n  \"date\": \"2026-03-09\",\n  \"note\": \"Dominos order\",\n  \"paidByUserId\": 1,\n  \"memberUserIds\": [1, 2, 3]\n}"
+            }
+          }
+        },
+        {
+          "name": "Mark User as Paid",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/splits/1/pay/2"
+          }
+        },
+        {
+          "name": "Undo Payment (Unmark Paid)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/splits/1/unpay/2"
+          }
+        },
+        {
+          "name": "Upload QR Code",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/splits/1/qr",
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "file", "type": "file", "src": "/path/to/qr.png" }]
+            }
+          }
+        },
+        {
+          "name": "View QR Image (Public)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/splits/1/qr"
+          }
+        },
+        {
+          "name": "Delete Split",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/splits/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get All Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/notifications"
+          }
+        },
+        {
+          "name": "Get Unread Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/notifications/unread"
+          }
+        },
+        {
+          "name": "Get Unread Count (Bell Badge)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/notifications/count"
+          }
+        },
+        {
+          "name": "Dismiss Notification",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/notifications/1/dismiss"
+          }
+        },
+        {
+          "name": "Dismiss All Notifications",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/notifications/dismiss-all"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get Analytics (Current Year)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/analytics"
+          }
+        },
+        {
+          "name": "Get Analytics (Specific Year)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics?year=2026",
+              "query": [{ "key": "year", "value": "2026" }]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
