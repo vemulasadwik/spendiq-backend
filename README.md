@@ -1,7 +1,7 @@
 # SpendIQ Pro — Spring Boot Backend
 
 ## Tech Stack
-- **Java 17** + **Spring Boot 3.2**
+- **Java 21** + **Spring Boot 3.2**
 - **Spring Security** + **JWT** (stateless auth)
 - **Spring Data JPA** + **Hibernate**
 - **MySQL 8**
