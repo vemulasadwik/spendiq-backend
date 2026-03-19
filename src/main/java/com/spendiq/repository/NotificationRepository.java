@@ -25,6 +25,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     void deleteByGroupSplitId(@Param("splitId") Long splitId);
 
     @Modifying
-    @Query(value = "DELETE FROM notifications WHERE group_split_id = :splitId", nativeQuery = true)
+    @Query(value = "DELETE FROM notifications WHERE split_id = :splitId", nativeQuery = true)
     void deleteByGroupSplitIdNative(@Param("splitId") Long splitId);
 }

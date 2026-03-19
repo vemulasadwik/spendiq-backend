@@ -130,7 +130,7 @@ public class GroupSplitService {
             throw new BadRequestException("Only the person who paid can delete this split");
         // Use native SQL to delete children — bypasses Hibernate cascade entirely
         notificationRepository.deleteByGroupSplitIdNative(splitId);
-        splitOweRepository.deleteByGroupSplitIdNative(splitId);
+        splitOweRepository.deleteByGroupSplitId(splitId);
         groupSplitRepository.deleteMembersByGroupSplitId(splitId);
         groupSplitRepository.deleteByIdNative(splitId);
     }

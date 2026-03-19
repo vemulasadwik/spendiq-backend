@@ -18,7 +18,8 @@ public interface SplitOweRepository extends JpaRepository<SplitOwe, Long> {
 
     List<SplitOwe> findByUserIdAndPaidFalse(Long userId);
 
-    @org.springframework.data.jpa.repository.Modifying
-    @org.springframework.data.jpa.repository.Query(value = "DELETE FROM split_owes WHERE group_split_id = :splitId", nativeQuery = true)
-    void deleteByGroupSplitIdNative(@org.springframework.data.repository.query.Param("splitId") Long splitId);
+    // Delete all owes for a split
+    @Modifying
+    @Query(value = "DELETE FROM split_owes WHERE split_id = :splitId", nativeQuery = true)
+    void deleteByGroupSplitId(@Param("splitId") Long splitId);
 }
