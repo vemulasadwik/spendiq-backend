@@ -124,18 +124,15 @@ public class GroupSplitService {
 
     @Transactional
     public void delete(User user, Long splitId) {
-        GroupSplit split = groupSplitRepository.findByIdWithOwes(splitId)
+        GroupSplit split = groupSplitRepository.findById(splitId)
                 .orElseThrow(() -> new ResourceNotFoundException("Split not found"));
-        // Only the payer (creator) can delete
         if (!split.getPaidBy().getId().equals(user.getId()))
             throw new BadRequestException("Only the person who paid can delete this split");
-        // Delete child records first to avoid FK constraint errors
-        notificationRepository.deleteByGroupSplitId(splitId);
-        splitOweRepository.deleteByGroupSplitId(splitId);
-        // Clear members join table
-        split.getMembers().clear();
-        groupSplitRepository.save(split);
-        groupSplitRepository.delete(split);
+        // Use native SQL to delete children — bypasses Hibernate cascade entirely
+        notificationRepository.deleteByGroupSplitIdNative(splitId);
+        splitOweRepository.deleteByGroupSplitIdNative(splitId);
+        groupSplitRepository.deleteMembersByGroupSplitId(splitId);
+        groupSplitRepository.deleteByIdNative(splitId);
     }
 
     @Transactional
