@@ -126,8 +126,15 @@ public class GroupSplitService {
     public void delete(User user, Long splitId) {
         GroupSplit split = groupSplitRepository.findByIdWithOwes(splitId)
                 .orElseThrow(() -> new ResourceNotFoundException("Split not found"));
-        boolean isMember = split.getMembers().stream().anyMatch(m -> m.getId().equals(user.getId()));
-        if (!isMember) throw new BadRequestException("You are not a member of this split");
+        // Only the payer (creator) can delete
+        if (!split.getPaidBy().getId().equals(user.getId()))
+            throw new BadRequestException("Only the person who paid can delete this split");
+        // Delete child records first to avoid FK constraint errors
+        notificationRepository.deleteByGroupSplitId(splitId);
+        splitOweRepository.deleteByGroupSplitId(splitId);
+        // Clear members join table
+        split.getMembers().clear();
+        groupSplitRepository.save(split);
         groupSplitRepository.delete(split);
     }
 

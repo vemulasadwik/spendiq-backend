@@ -14,4 +14,7 @@ public interface SplitOweRepository extends JpaRepository<SplitOwe, Long> {
     Optional<SplitOwe> findByGroupSplitIdAndUserId(Long splitId, Long userId);
 
     List<SplitOwe> findByUserIdAndPaidFalse(Long userId);
+
+    // Delete all owes for a split (used when deleting a split)
+    void deleteByGroupSplitId(Long groupSplitId);
 }

@@ -15,4 +15,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     List<Notification> findByUserIdAndDismissedFalseOrderByCreatedAtDesc(Long userId);
 
     long countByUserIdAndDismissedFalse(Long userId);
+
+    // Delete all notifications for a split (used when deleting a split)
+    void deleteByGroupSplitId(Long groupSplitId);
 }
