@@ -18,8 +18,8 @@ public interface SplitOweRepository extends JpaRepository<SplitOwe, Long> {
 
     List<SplitOwe> findByUserIdAndPaidFalse(Long userId);
 
-    // Delete all owes for a split
+    // ✅ Uses correct column name: split_id (not group_split_id)
     @Modifying
     @Query(value = "DELETE FROM split_owes WHERE split_id = :splitId", nativeQuery = true)
-    void deleteByGroupSplitId(@Param("splitId") Long splitId);
+    void deleteOwesBySplitId(@Param("splitId") Long splitId);
 }

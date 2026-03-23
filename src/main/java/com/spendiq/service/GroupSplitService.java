@@ -7,7 +7,6 @@ import com.spendiq.exception.BadRequestException;
 import com.spendiq.exception.ResourceNotFoundException;
 import com.spendiq.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,11 +14,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.nio.file.*;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,9 +27,6 @@ public class GroupSplitService {
     private final SplitOweRepository splitOweRepository;
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
-
-    @Value("${app.upload.dir}")
-    private String uploadDir;
 
     @Autowired
     public GroupSplitService(GroupSplitRepository groupSplitRepository,
@@ -114,7 +109,6 @@ public class GroupSplitService {
         notificationRepository.flush();
         groupSplitRepository.flush();
 
-        // Load owes directly and manually set them
         List<SplitOwe> owes = splitOweRepository.findByGroupSplitId(splitId);
         GroupSplit result = groupSplitRepository.findByIdWithOwes(splitId).orElseThrow();
         result.getOwes().clear();
@@ -126,12 +120,13 @@ public class GroupSplitService {
     public void delete(User user, Long splitId) {
         GroupSplit split = groupSplitRepository.findById(splitId)
                 .orElseThrow(() -> new ResourceNotFoundException("Split not found"));
+        // Only the person who paid (split creator) can delete
         if (!split.getPaidBy().getId().equals(user.getId()))
             throw new BadRequestException("Only the person who paid can delete this split");
-        // Use native SQL to delete children — bypasses Hibernate cascade entirely
-        notificationRepository.deleteByGroupSplitIdNative(splitId);
-        splitOweRepository.deleteByGroupSplitId(splitId);
-        groupSplitRepository.deleteMembersByGroupSplitId(splitId);
+        // Delete in correct FK order using native SQL with correct column names
+        notificationRepository.deleteNotificationsBySplitId(splitId);
+        splitOweRepository.deleteOwesBySplitId(splitId);
+        groupSplitRepository.deleteMembersBySplitId(splitId);
         groupSplitRepository.deleteByIdNative(splitId);
     }
 
@@ -179,6 +174,7 @@ public class GroupSplitService {
         return GroupSplitResponse.from(result, baseUrl);
     }
 
+    // ✅ QR stored as base64 in DB — persists across server restarts, visible to all users
     @Transactional
     public GroupSplitResponse uploadQr(User user, Long splitId, MultipartFile file, String baseUrl) throws IOException {
         GroupSplit split = groupSplitRepository.findByIdWithOwes(splitId)
@@ -193,21 +189,13 @@ public class GroupSplitService {
             throw new BadRequestException("Only image files are allowed");
         }
 
-        Path uploadPath = Paths.get(uploadDir, "qr");
-        Files.createDirectories(uploadPath);
+        // Convert to base64 data URL and store directly in DB
+        byte[] bytes = file.getBytes();
+        String base64 = Base64.getEncoder().encodeToString(bytes);
+        String mediaType = contentType != null ? contentType : "image/png";
+        String dataUrl = "data:" + mediaType + ";base64," + base64;
 
-        String ext = file.getOriginalFilename() != null
-                ? file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."))
-                : ".png";
-        String fileName = "qr_split_" + splitId + "_" + UUID.randomUUID() + ext;
-        Path filePath = uploadPath.resolve(fileName);
-        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-        if (split.getQrImagePath() != null) {
-            try { Files.deleteIfExists(Paths.get(split.getQrImagePath())); } catch (IOException ignored) {}
-        }
-
-        split.setQrImagePath(filePath.toString());
+        split.setQrImagePath(dataUrl);
         groupSplitRepository.save(split);
 
         List<SplitOwe> owes = splitOweRepository.findByGroupSplitId(splitId);
@@ -217,12 +205,13 @@ public class GroupSplitService {
         return GroupSplitResponse.from(result, baseUrl);
     }
 
-    public byte[] getQrImage(Long splitId) throws IOException {
+    // Returns base64 data URL stored in DB
+    public String getQrDataUrl(Long splitId) {
         GroupSplit split = groupSplitRepository.findById(splitId)
                 .orElseThrow(() -> new ResourceNotFoundException("Split not found"));
         if (split.getQrImagePath() == null) {
-            throw new ResourceNotFoundException("No QR code uploaded");
+            throw new ResourceNotFoundException("No QR code uploaded for this split");
         }
-        return Files.readAllBytes(Paths.get(split.getQrImagePath()));
+        return split.getQrImagePath();
     }
 }

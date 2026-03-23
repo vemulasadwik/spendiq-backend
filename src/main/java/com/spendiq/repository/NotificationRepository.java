@@ -11,20 +11,14 @@ import java.util.List;
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    // All notifications for a user, newest first
     List<Notification> findByUserIdOrderByCreatedAtDesc(Long userId);
 
-    // Unread (not dismissed) notifications only
     List<Notification> findByUserIdAndDismissedFalseOrderByCreatedAtDesc(Long userId);
 
     long countByUserIdAndDismissedFalse(Long userId);
 
-    // Delete all notifications for a split (used when deleting a split)
-    @Modifying
-    @Query("DELETE FROM Notification n WHERE n.groupSplit.id = :splitId")
-    void deleteByGroupSplitId(@Param("splitId") Long splitId);
-
+    // ✅ Uses correct column name: split_id (not group_split_id)
     @Modifying
     @Query(value = "DELETE FROM notifications WHERE split_id = :splitId", nativeQuery = true)
-    void deleteByGroupSplitIdNative(@Param("splitId") Long splitId);
+    void deleteNotificationsBySplitId(@Param("splitId") Long splitId);
 }
