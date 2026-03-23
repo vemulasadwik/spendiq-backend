@@ -45,7 +45,7 @@ public class GroupSplit {
     @OneToMany(mappedBy = "groupSplit", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<SplitOwe> owes = new ArrayList<>();
 
-    @Column(name = "qr_image_path")
+    @Column(name = "qr_image_path", columnDefinition = "TEXT")
     private String qrImagePath;
 
     @Column(name = "created_at", updatable = false)
