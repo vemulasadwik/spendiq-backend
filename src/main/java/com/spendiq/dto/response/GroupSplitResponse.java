@@ -33,7 +33,8 @@ public class GroupSplitResponse {
         r.members = g.getMembers().stream().map(UserResponse::from).collect(Collectors.toSet());
         r.owes = g.getOwes().stream().map(SplitOweResponse::from).collect(Collectors.toList());
         r.pendingCount = (int) g.getOwes().stream().filter(o -> !o.isPaid()).count();
-        r.qrImageUrl = g.getQrImagePath() != null ? baseUrl + "/api/splits/" + g.getId() + "/qr" : null;
+        // ✅ Return base64 data URL directly — works on ALL devices, no file system needed
+        r.qrImageUrl = g.getQrImagePath();
         r.createdAt = g.getCreatedAt();
         return r;
     }
